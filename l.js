@@ -7,20 +7,29 @@ var context = canvas.getContext("2d");
 
 var lSystem = "F";
 var lSysRules = [
-        ["F", "F[F[++G-FG]]F[F-[-F-]i]G"],
+        ["F", "F[F-+G]-F"],
         ["H", "[F]"],
-        ["G", "H"]
+        ["G", "H"],
+	["-", "-"],
+	["+", "+"]
 ];
 
 
-var rotateAmount = Math.PI / 180 * 30;
+var rotateAmount = Math.PI / 180 * 20;
 var fLength = 5;
 
+var cc = 1;
 applyButton.onclick =  function (event) 
 {
-        lSystem = applyRules(lSystem, lSysRules);
+	if (cc % 5 == 0)
+	{
+	lSysRules = mutate(lSysRules, 0.01);
+	lSystem = "F[-F][+F]";
+	}
+	lSystem = applyRules(lSystem, lSysRules);
         console.log(lSystem);
         drawLSystem(lSystem);
+	cc++;
 };
 
 function applyRules(sys, rules)
@@ -51,6 +60,69 @@ function applyRules(sys, rules)
         }
 
         return lSys;
+}
+
+function mutate(rules, chance)
+{
+	var newRules = [];
+	for (var i = 0; i < rules.length;i++)
+	{
+		newRules[i] = [rules[i][0], rules[i][1]];
+		if (Math.random() < chance)
+		{
+			//newRules[i][0] = ["F", "G", "+", "-"][Math.floor(Math.random() * 4)];
+		}
+		
+		var newRule = "";
+		var removedBracketCount = 0;
+
+		if (Math.random() < chance)
+		{
+			newRule += [rules[i][0], ""][Math.floor(Math.random() * 2)];
+		}
+
+		for (var j = 0; j < rules[i][1].length;j++)
+		{
+			if (Math.random() < chance)
+			{
+				if (rules[i][1][j] == "[")
+				{
+					removedBracketCount++;
+				}
+				else if (rules[i][1][j] == "]")
+				{
+					if (removedBracketCount > 0)
+					{
+						removedBracketCount--;
+					}
+					else
+					{
+						newRule += ["F", "G", "+", "-", "[]", ""][Math.floor(Math.random() * 6)];
+						newRule += "]"
+					}
+
+					continue;
+				}
+				
+				newRule += ["F", "G", "+", "-", "[]", ""][Math.floor(Math.random() * 6)];
+			}
+			else
+			{
+				if (rules[i][1][j] == "]" && removedBracketCount > 0)
+				{
+					removedBracketCount--;
+				}
+				else
+				{
+					newRule += rules[i][1][j];
+				}
+			}
+		}
+
+		newRules[i][1] = newRule;
+	}
+
+	return newRules;
 }
 
 function drawLSystem(sys)
